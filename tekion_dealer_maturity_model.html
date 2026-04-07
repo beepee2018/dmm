@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tekion Dealer Maturity Model — BP Learning Solutions</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --green-dark: #1a5c38;
+    --green-light: #22a455;
+    --charcoal: #1e1e1e;
+    --body-text: #2c2c2c;
+    --bg-light: #f5f5f5;
+    --tier1: #6b7280;
+    --tier1-bg: #f3f4f6;
+    --tier1-light: #e5e7eb;
+    --tier2: #0f6e56;
+    --tier2-bg: #e1f5ee;
+    --tier2-light: #9fe1cb;
+    --tier3: #185fa5;
+    --tier3-bg: #e6f1fb;
+    --tier3-light: #b5d4f4;
+    --tier4: #534ab7;
+    --tier4-bg: #eeedfe;
+    --tier4-light: #afa9ec;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #e8e8e8;
+    color: var(--body-text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .page {
+    max-width: 960px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.12);
+  }
+
+  /* HEADER */
+  .cover {
+    background: var(--green-dark);
+    padding: 40px 48px 36px;
+    color: #fff;
+  }
+  .cover .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 12px;
+  }
+  .cover h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .cover .sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 28px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 32px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    padding-top: 18px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+  }
+  .cover-meta span strong { color: #fff; display: block; font-size: 13px; margin-bottom: 2px; }
+
+  /* BODY */
+  .body { padding: 40px 48px 48px; }
+
+  .context-note {
+    background: var(--bg-light);
+    border-left: 4px solid var(--green-light);
+    padding: 16px 20px;
+    margin-bottom: 36px;
+    border-radius: 0 4px 4px 0;
+    font-size: 13.5px;
+    color: var(--body-text);
+    line-height: 1.6;
+  }
+
+  /* MODEL TABLE */
+  .dmm-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 32px;
+  }
+
+  /* Dim label column */
+  .dim-label {
+    width: 110px;
+    padding: 0 14px 0 0;
+    vertical-align: middle;
+    text-align: right;
+  }
+  .dim-label-inner {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--green-dark);
+    line-height: 1.4;
+  }
+
+  /* Tier header cells */
+  .tier-header {
+    padding: 0 6px 10px;
+    text-align: center;
+    width: calc((100% - 110px) / 4);
+  }
+  .tier-badge {
+    display: inline-block;
+    padding: 6px 14px 7px;
+    border-radius: 4px;
+    width: 100%;
+    text-align: center;
+  }
+  .tier-badge .tier-num {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .tier-badge .tier-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 15px;
+  }
+
+  .t1 .tier-badge { background: var(--tier1-bg); color: var(--tier1); border: 1px solid var(--tier1-light); }
+  .t2 .tier-badge { background: var(--tier2-bg); color: var(--tier2); border: 1px solid var(--tier2-light); }
+  .t3 .tier-badge { background: var(--tier3-bg); color: var(--tier3); border: 1px solid var(--tier3-light); }
+  .t4 .tier-badge { background: var(--tier4-bg); color: var(--tier4); border: 1px solid var(--tier4-light); }
+
+  /* Data cells */
+  .dmm-cell {
+    padding: 5px 6px;
+    vertical-align: top;
+  }
+
+  .cell-inner {
+    background: var(--bg-light);
+    border-radius: 4px;
+    padding: 14px 14px 12px;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    position: relative;
+    min-height: 80px;
+  }
+  .cell-inner:hover {
+    transform: translateY(-1px);
+  }
+  .cell-inner .headline {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--charcoal);
+    margin-bottom: 4px;
+  }
+  .cell-inner .subline {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+  }
+  .cell-inner .click-hint {
+    position: absolute;
+    bottom: 8px;
+    right: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .cell-inner:hover .click-hint { opacity: 1; }
+
+  /* Tier-colored cells */
+  .t1 .cell-inner { border-color: var(--tier1-light); }
+  .t1 .cell-inner:hover { border-color: var(--tier1); background: #fff; }
+  .t1 .cell-inner .headline { color: var(--tier1); }
+  .t1 .cell-inner .click-hint { color: var(--tier1); }
+
+  .t2 .cell-inner { border-color: var(--tier2-light); }
+  .t2 .cell-inner:hover { border-color: var(--tier2); background: #fff; }
+  .t2 .cell-inner .headline { color: var(--tier2); }
+  .t2 .cell-inner .click-hint { color: var(--tier2); }
+
+  .t3 .cell-inner { border-color: var(--tier3-light); }
+  .t3 .cell-inner:hover { border-color: var(--tier3); background: #fff; }
+  .t3 .cell-inner .headline { color: var(--tier3); }
+  .t3 .cell-inner .click-hint { color: var(--tier3); }
+
+  .t4 .cell-inner { border-color: var(--tier4-light); }
+  .t4 .cell-inner:hover { border-color: var(--tier4); background: #fff; }
+  .t4 .cell-inner .headline { color: var(--tier4); }
+  .t4 .cell-inner .click-hint { color: var(--tier4); }
+
+  /* Spacer row between dimension groups */
+  .row-spacer td { height: 8px; }
+
+  /* Dim separator row label */
+  .dim-row td { padding-top: 4px; }
+
+  /* PROGRESSION BAR */
+  .progression {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 0 0 8px 110px;
+  }
+  .prog-seg {
+    flex: 1;
+    height: 5px;
+    position: relative;
+  }
+  .prog-seg:first-child { border-radius: 3px 0 0 3px; }
+  .prog-seg:last-child { border-radius: 0 3px 3px 0; }
+  .prog-seg::after {
+    content: '';
+    position: absolute;
+    right: 0; top: -3px;
+    width: 1px; height: 11px;
+    background: rgba(255,255,255,0.6);
+  }
+  .prog-seg:last-child::after { display: none; }
+  .s1 { background: var(--tier1); }
+  .s2 { background: var(--tier2); }
+  .s3 { background: var(--tier3); }
+  .s4 { background: var(--tier4); }
+
+  .prog-labels {
+    display: flex;
+    margin: 5px 0 28px 110px;
+  }
+  .prog-label {
+    flex: 1;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: center;
+    color: #999;
+  }
+
+  /* OWNERSHIP NOTE */
+  .ownership {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .own-badge {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--bg-light);
+    border-radius: 4px;
+    padding: 14px 16px;
+    flex: 1;
+    border: 1px solid #e0e0e0;
+  }
+  .own-icon {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 1px;
+  }
+  .own-cvm .own-icon { background: var(--green-dark); }
+  .own-cva .own-icon { background: var(--tier3); }
+  .own-label { font-weight: 600; font-size: 13px; color: var(--charcoal); margin-bottom: 3px; }
+  .own-desc { font-size: 12px; color: #666; line-height: 1.4; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: #fff;
+    border-radius: 8px;
+    max-width: 520px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+    position: relative;
+    animation: modal-in 0.18s ease;
+  }
+  @keyframes modal-in {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .modal-header {
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+    border-radius: 8px 8px 0 0;
+  }
+  .modal-tier-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+  .modal-dim {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 4px;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    color: var(--charcoal);
+  }
+  .modal-close {
+    position: absolute;
+    top: 18px; right: 20px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #aaa;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+  .modal-close:hover { color: var(--charcoal); }
+
+  .modal-body { padding: 20px 24px 24px; }
+
+  .modal-section { margin-bottom: 20px; }
+  .modal-section:last-child { margin-bottom: 0; }
+  .modal-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--green-dark);
+    margin-bottom: 8px;
+  }
+  .modal-section p {
+    font-size: 13.5px;
+    color: var(--body-text);
+    line-height: 1.65;
+  }
+  .modal-section ul {
+    padding-left: 16px;
+    font-size: 13.5px;
+    color: var(--body-text);
+    line-height: 1.7;
+  }
+  .modal-section ul li { margin-bottom: 4px; }
+
+  .signal-box {
+    background: var(--bg-light);
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--body-text);
+    line-height: 1.6;
+  }
+  .signal-box strong { display: block; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--green-dark); margin-bottom: 6px; }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+    margin-top: 20px;
+  }
+  .nav-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.12s, color 0.12s;
+  }
+  .nav-btn:hover { border-color: var(--green-dark); color: var(--green-dark); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .nav-pos { font-size: 11px; color: #aaa; }
+
+  /* FOOTER */
+  footer {
+    background: var(--charcoal);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    font-size: 11px;
+    padding: 16px;
+    letter-spacing: 0.5px;
+  }
+  footer strong { color: rgba(255,255,255,0.8); }
+
+  @media print {
+    body { background: #fff; }
+    .page { box-shadow: none; margin: 0; border-radius: 0; }
+    .modal-overlay { display: none !important; }
+    .click-hint { display: none; }
+    .cell-inner { cursor: default; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="label">BP Learning Solutions &nbsp;·&nbsp; Tekion Corp. Engagement</div>
+    <h1>Dealer Maturity Model</h1>
+    <div class="sub">A four-tier progression framework for measuring and advancing dealer value realization</div>
+    <div class="cover-meta">
+      <span><strong>Version</strong>Working Draft — April 2026</span>
+      <span><strong>Owner</strong>Customer Value Manager (CVM)</span>
+      <span><strong>Input</strong>Customer Value Architect (CVA)</span>
+      <span><strong>Use</strong>Account segmentation, engagement strategy, CVP</span>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <div class="context-note">
+      This model defines where a dealer stands in their Tekion journey and what advancement looks like. Tier designation is owned by the CVM and informed by CVA adoption data. The model drives account assignment, engagement cadence, and Customer Value Plan priorities — not just reporting. Click any cell to see what it means in practice.
+    </div>
+
+    <!-- PROGRESSION BAR -->
+    <div class="progression">
+      <div class="prog-seg s1"></div>
+      <div class="prog-seg s2"></div>
+      <div class="prog-seg s3"></div>
+      <div class="prog-seg s4"></div>
+    </div>
+    <div class="prog-labels">
+      <div class="prog-label">Foundational</div>
+      <div class="prog-label">Developing</div>
+      <div class="prog-label">Optimized</div>
+      <div class="prog-label">Strategic</div>
+    </div>
+
+    <!-- MAIN TABLE -->
+    <table class="dmm-table">
+      <thead>
+        <tr>
+          <td class="dim-label"></td>
+          <th class="tier-header t1">
+            <div class="tier-badge">
+              <div class="tier-num">Tier 1</div>
+              <div class="tier-name">Foundational</div>
+            </div>
+          </th>
+          <th class="tier-header t2">
+            <div class="tier-badge">
+              <div class="tier-num">Tier 2</div>
+              <div class="tier-name">Developing</div>
+            </div>
+          </th>
+          <th class="tier-header t3">
+            <div class="tier-badge">
+              <div class="tier-num">Tier 3</div>
+              <div class="tier-name">Optimized</div>
+            </div>
+          </th>
+          <th class="tier-header t4">
+            <div class="tier-badge">
+              <div class="tier-num">Tier 4</div>
+              <div class="tier-name">Strategic</div>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="dmm-body">
+        <!-- Rows injected by JS -->
+      </tbody>
+    </table>
+
+    <!-- OWNERSHIP NOTE -->
+    <div class="ownership">
+      <div class="own-badge own-cvm">
+        <div class="own-icon">CVM</div>
+        <div>
+          <div class="own-label">Tier designation &amp; Value Realization</div>
+          <div class="own-desc">The CVM owns the dealer's overall tier designation and is accountable for Value Realization and Self-Sufficiency assessments, drawing on relationship context and CVA input.</div>
+        </div>
+      </div>
+      <div class="own-badge own-cva">
+        <div class="own-icon">CVA</div>
+        <div>
+          <div class="own-label">Adoption &amp; Usage assessment</div>
+          <div class="own-desc">The CVA provides the product adoption and usage data that grounds the tier assessment in observable behavior, not relationship optimism.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <footer>
+    Confidential &nbsp;|&nbsp; <strong>BP Learning Solutions</strong> &nbsp;|&nbsp; bp-learningsolutions.com &nbsp;|&nbsp; Strategy. Learning. Results.
+  </footer>
+
+</div><!-- /page -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+      <div class="modal-tier-tag" id="modal-tag"></div>
+      <div class="modal-dim" id="modal-dim"></div>
+      <div class="modal-title" id="modal-title"></div>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const TIERS = [
+  { key: 't1', label: 'Tier 1', name: 'Foundational', color: '#6b7280', bg: '#f3f4f6' },
+  { key: 't2', label: 'Tier 2', name: 'Developing',   color: '#0f6e56', bg: '#e1f5ee' },
+  { key: 't3', label: 'Tier 3', name: 'Optimized',    color: '#185fa5', bg: '#e6f1fb' },
+  { key: 't4', label: 'Tier 4', name: 'Strategic',    color: '#534ab7', bg: '#eeedfe' },
+];
+
+const DIMS = [
+  { key: 'adoption',      label: 'Adoption',          owner: 'CVA' },
+  { key: 'usage',         label: 'Usage',             owner: 'CVA' },
+  { key: 'value',         label: 'Value Realization', owner: 'CVM' },
+  { key: 'sufficiency',   label: 'Self-Sufficiency',  owner: 'CVM' },
+];
+
+const CELLS = {
+  adoption: {
+    t1: {
+      headline: 'Core modules live',
+      subline: '1–2 functional areas',
+      what: 'The dealer has completed implementation and gone live on one or two core Tekion modules — typically Fixed Ops or Accounting. Staff have been trained to a minimum viable level, but depth of use is shallow and inconsistent across roles.',
+      signals: [
+        'Go-live complete on 1–2 modules',
+        'Most staff have completed onboarding training',
+        'Fewer than 50% of available features in active use',
+        'Reliant on Tekion support for routine configuration questions',
+      ],
+      cva_action: 'Conduct adoption diagnostic to identify which workflows are active vs. dormant. Map gaps to specific roles and develop a targeted activation plan for the next 60 days.',
+      example: 'A single-point rooftop that went live on Service and Parts six months ago but has not yet activated the Accounting or CRM modules. Service advisors use Tekion for RO creation but still run reports in Excel.',
+    },
+    t2: {
+      headline: '3+ modules active',
+      subline: 'Expanding role coverage',
+      what: 'The dealer has activated three or more modules and is in the process of expanding adoption across additional roles and workflows. Key staff are using the platform daily, though some departments remain inconsistent.',
+      signals: [
+        '3+ modules live and in daily use',
+        'Department heads are actively engaged in adoption',
+        'Recurring support tickets trending downward',
+        'Some self-service behavior emerging in day-to-day operations',
+      ],
+      cva_action: 'Identify the next highest-value module or workflow to activate. Run a maturity gap session with department leads to align on adoption targets for the next quarter.',
+      example: 'A mid-size group using Fixed Ops, Accounting, and beginning to activate Retail/CRM. F&I managers are logging deals but sales managers are not yet using reporting dashboards.',
+    },
+    t3: {
+      headline: 'Cross-module integration',
+      subline: 'Most roles active',
+      what: 'The dealer is operating the platform across multiple modules in an integrated way — data flows between departments and decisions are increasingly informed by Tekion data. Most customer-facing and operational roles are active daily users.',
+      signals: [
+        'Cross-module data flows in active use (e.g., service to accounting)',
+        '80%+ of eligible staff are daily active users',
+        'Reporting used across departments, not just by managers',
+        'Platform is core to daily operations, not supplemental',
+      ],
+      cva_action: 'Shift from activation to optimization. Identify advanced features and Analytics capabilities the dealer is not yet using. Build a feature adoption roadmap tied to specific business outcomes.',
+      example: 'A dealer group where Finance, Service, and Sales teams all operate in Tekion daily. GMs pull live dashboards for morning stand-ups. The service department has eliminated paper-based RO processes entirely.',
+    },
+    t4: {
+      headline: 'Full platform depth',
+      subline: 'All modules, all roles',
+      what: 'The dealer has achieved full deployment across all licensed modules with deep role-based adoption. Staff are not just using the platform — they are extracting advanced value from it and proactively seeking new capabilities.',
+      signals: [
+        'All licensed modules live and fully adopted',
+        'Analytics and BI tools in active use by leadership',
+        'Staff proactively request new features or training',
+        'Platform usage data drives operational decisions at all levels',
+      ],
+      cva_action: 'Shift to a strategic advisory posture. Quarterly platform optimization reviews. Surface beta features or emerging capabilities. Explore whether this dealer is a candidate for co-development or early access programs.',
+      example: 'A large dealer group where every department — including Finance, HR, and executive leadership — operates primarily through Tekion. The GM uses live analytics to manage daily throughput targets. They regularly provide product feedback directly to Tekion.',
+    },
+  },
+  usage: {
+    t1: {
+      headline: 'Low transaction volume',
+      subline: 'Inconsistent daily use',
+      what: 'Active sessions and transaction volume are well below benchmark for dealers of comparable size. The platform is being used, but not embedded in daily workflow. Staff often default to workarounds, spreadsheets, or prior-system habits.',
+      signals: [
+        'Transaction volume below 40% of size-adjusted benchmark',
+        'Login frequency is irregular across roles',
+        'Significant workarounds documented in support tickets',
+        'Platform perceived as an add-on, not the operating system',
+      ],
+      cva_action: 'Identify the specific workflows where workarounds are most prevalent. Work with the CVM to understand whether this is a change management problem, a training gap, or a process fit issue — each has a different intervention.',
+      example: 'Service advisors create ROs in Tekion but print them, annotate them by hand, and re-enter notes later. Transaction count is inflated by duplicate entries. The platform is not yet the system of record.',
+    },
+    t2: {
+      headline: 'Growing daily activity',
+      subline: 'Workflow penetration increasing',
+      what: 'Daily active usage is growing and the platform is becoming part of established workflow for most users. Transaction volume is trending toward benchmark, with some variance across departments or locations.',
+      signals: [
+        'Transaction volume 40–70% of size-adjusted benchmark',
+        'Most key roles logging in daily',
+        'Support tickets shifting from basic how-to to configuration and optimization questions',
+        'Managers beginning to use reports for operational decisions',
+      ],
+      cva_action: 'Focus on the highest-usage workflows and drive depth. Run a usage analysis to identify which departments or roles are below average and why. Target the next usage lift in those areas.',
+      example: 'Fixed Ops team is consistently using the RO workflow end-to-end. Sales team is logging activities in CRM but not yet running reports. F&I is live but deal log completion rate is around 60%.',
+    },
+    t3: {
+      headline: 'High utilization rate',
+      subline: 'Data-driven decisions',
+      what: 'The platform is the primary operating system for most of the dealership. Transaction volume is at or above benchmark, data quality is high, and managers are using real-time reports to make daily operational decisions.',
+      signals: [
+        'Transaction volume at or above size-adjusted benchmark',
+        '90%+ daily active user rate among eligible staff',
+        'High data quality — minimal duplicate entries, complete records',
+        'Management reporting runs on Tekion data, not exports',
+      ],
+      cva_action: 'Validate data quality at the field level, not just volume. Identify advanced analytics use cases — predictive scheduling, inventory optimization, performance benchmarking — and build a roadmap to activate them.',
+      example: 'The service department completes 95% of ROs end-to-end in Tekion. The GM reviews a live dashboard every morning. Deal log completion is at 98%. The dealer has stopped using the legacy reporting system entirely.',
+    },
+    t4: {
+      headline: 'Platform-led operations',
+      subline: 'Advanced analytics in use',
+      what: 'Tekion is not a tool this dealer uses — it is how they run their business. Advanced analytics, predictive insights, and cross-department data flows are embedded in strategic and operational decision-making at every level.',
+      signals: [
+        'Advanced analytics and custom reporting in active daily use',
+        'Leadership decisions grounded in Tekion data, not gut or lag reports',
+        'Cross-location or multi-rooftop data aggregation in use (groups)',
+        'Dealer proactively identifies platform capability gaps and requests enhancements',
+      ],
+      cva_action: 'Move into a strategic partnership posture. Monthly platform performance reviews rather than support-based engagement. Position dealer for early access to new analytics features. Explore whether they are a reference candidate for Tekion\'s product roadmap conversations.',
+      example: 'A dealer group that uses Tekion analytics to benchmark performance across 12 rooftops. The COO reviews a consolidated dashboard weekly. They have submitted four product enhancement requests in the past year, two of which influenced roadmap decisions.',
+    },
+  },
+  value: {
+    t1: {
+      headline: 'Value undefined',
+      subline: 'No baseline established',
+      what: 'The dealer and Tekion have not yet defined what success looks like or established a baseline from which to measure improvement. Value conversations are either absent or framed around feature delivery, not business outcomes.',
+      signals: [
+        'No Customer Value Plan in place or severely out of date',
+        'Dealer cannot articulate what Tekion is supposed to improve',
+        'CVM conversations focus on tickets and issues, not outcomes',
+        'No agreed KPIs or benchmarks between dealer and Tekion',
+      ],
+      cva_action: 'Provide CVA-side input on current adoption and usage metrics to seed the baseline. Partner with the CVM to frame a value hypothesis — what should be improving, based on what the dealer has activated.',
+      example: 'A dealer that has been live for 8 months but has never had a structured conversation about ROI. The GM measures success by whether the system "works," not whether it\'s moving business metrics. The CVM has no Customer Value Plan on file.',
+    },
+    t2: {
+      headline: 'Outcomes emerging',
+      subline: 'Baseline now established',
+      what: 'A Customer Value Plan is in place and the dealer has agreed to a set of KPIs. Early results are appearing — cycle time improving, RO close rates up, CSI scores trending positive — but they are not yet consistent or fully documented.',
+      signals: [
+        'Customer Value Plan in place and reviewed quarterly',
+        'At least 2–3 agreed KPIs with documented baseline',
+        'Early positive data points appearing in at least one department',
+        'CVM can point to specific improvements in conversation with the dealer',
+      ],
+      cva_action: 'Connect adoption gains to emerging business results. When you see usage increasing in a specific workflow, quantify what it means — faster cycle times, fewer comebacks, higher close rates. Give the CVM the data narrative to use in Value Reviews.',
+      example: 'A dealer where the CVM has documented a 12% reduction in service cycle time since go-live, but the dealer still attributes it to a new service manager hire, not the platform. The CVM is building the evidence base to reframe that conversation.',
+    },
+    t3: {
+      headline: 'Measurable impact',
+      subline: 'Dealer can articulate ROI',
+      what: 'Value realization is documented, reviewed on cadence, and the dealer can clearly articulate what Tekion has improved in their business. Value Reviews are productive conversations, not compliance events. Renewal risk is low.',
+      signals: [
+        'Dealer references Tekion ROI unprompted in business conversations',
+        'Value Reviews drive operational decisions, not just documentation',
+        'Multiple KPIs showing improvement with Tekion data as the source',
+        'Renewal conversations start from a position of demonstrated value',
+      ],
+      cva_action: 'Identify which value gains are sustainable vs. one-time and help the CVM develop a value growth narrative — what additional capabilities would compound the results the dealer has already seen.',
+      example: 'A dealer who tells their 20-group peers that Tekion reduced their parts obsolescence costs by 18% last year. The CVM documented this in the Value Review and used it as the anchor for the renewal conversation. The dealer signed a two-year extension.',
+    },
+    t4: {
+      headline: 'Compounding value',
+      subline: 'Expansion-ready',
+      what: 'The dealer sees Tekion as a strategic growth lever, not a cost of doing business. Value is compounding — each new capability they adopt builds on existing results. They are actively looking to expand the engagement, not just renew it.',
+      signals: [
+        'Dealer-initiated expansion conversations in the past 12 months',
+        'Tekion is referenced in the dealer\'s own strategic planning',
+        'Value Reviews produce new capability or module requests',
+        'Net Revenue Retention (NRR) driven by this account is above benchmark',
+      ],
+      cva_action: 'Identify the next tier of value — which advanced analytics, workflow automation, or emerging capabilities would produce the next wave of measurable impact. Build the business case for expansion and give it to the CVM with the data to support it.',
+      example: 'A dealer group that proactively asked their CVM about Tekion\'s new predictive inventory module after seeing a competitor mention it. They added two rooftops to their contract at renewal and are piloting the new module. The dealer principal references Tekion in their annual planning document.',
+    },
+  },
+  sufficiency: {
+    t1: {
+      headline: 'High support reliance',
+      subline: 'Reactive engagement model',
+      what: 'The dealer generates a high volume of support tickets and relies on Tekion for routine operational questions. Most interactions are reactive — triggered by problems, not by proactive engagement. The CVM relationship is driven by escalations.',
+      signals: [
+        'Above-average ticket volume relative to size and tenure',
+        'Tickets are routine how-to questions, not complex configuration needs',
+        'CVM engagement is primarily reactive — called when something breaks',
+        'Dealer has no internal Tekion champion or super-user',
+      ],
+      cva_action: 'Identify and develop an internal super-user at the dealer. This is the single highest-leverage self-sufficiency investment at Tier 1. A confident internal champion deflects more tickets than any amount of documentation.',
+      example: 'A dealer whose office manager submits 3–5 tickets per week, mostly around report generation and user access. The same questions recur monthly. There is no internal person the staff goes to when they have a Tekion question — they go straight to support.',
+    },
+    t2: {
+      headline: 'Reducing ticket volume',
+      subline: 'Beginning to self-serve',
+      what: 'Support ticket volume is declining and an internal champion is emerging. The dealer is starting to answer some of their own questions and the nature of support requests is shifting from basic to intermediate.',
+      signals: [
+        'Ticket volume trending down quarter-over-quarter',
+        'At least one internal super-user identified and active',
+        'Staff reference the Tekion knowledge base or internal resources',
+        'CVM relationship shifting from reactive to planned cadence',
+      ],
+      cva_action: 'Invest in the internal super-user. Run a focused enablement session specifically designed to expand their capability. Equip them with resources they can use to answer the team\'s questions independently.',
+      example: 'A dealer where the controller has become the de facto Tekion expert for the accounting team. She answers 60–70% of her team\'s questions directly. Tickets from the accounting department have dropped by half. The service team is still reliant on external support.',
+    },
+    t3: {
+      headline: 'Largely independent',
+      subline: 'Proactive engagement',
+      what: 'The dealer operates the platform with minimal reactive support. Most engagement with Tekion is scheduled, proactive, and focused on optimization — not problem resolution. Internal champions are embedded across departments.',
+      signals: [
+        'Ticket volume at or below benchmark for dealer size',
+        'Super-users active in multiple departments',
+        'Dealer engages proactively for training, not reactively for fixes',
+        'CVM relationship focused on growth and value, not firefighting',
+      ],
+      cva_action: 'Shift the CVA engagement model from intervention to strategic optimization. Scheduled quarterly reviews focused on advanced capability activation rather than usage troubleshooting.',
+      example: 'A dealer with an internal "Tekion coordinator" role who runs monthly platform training for new hires. The CVM and CVA meet with this person quarterly to review performance and plan the next capability focus. Tickets are almost exclusively complex configuration requests.',
+    },
+    t4: {
+      headline: 'Fully self-sufficient',
+      subline: 'Minimal intervention needed',
+      what: 'The dealer operates the platform entirely independently for day-to-day needs. Tekion engagement is strategic — focused on innovation, expansion, and peer influence — not operational support. This dealer requires and expects a peer-level relationship.',
+      signals: [
+        'Ticket volume minimal — escalations only for system-level issues',
+        'Internal Tekion expertise embedded across leadership team',
+        'Dealer runs their own internal training and onboarding for new staff',
+        'CVM and CVA relationship is strategic and forward-looking, not supportive',
+      ],
+      cva_action: 'Reserve CVA time for strategic platform conversations — roadmap input, advanced analytics review, emerging capability previews. Do not invest CVA capacity in operational support for Tier 4 dealers. That time belongs to Tier 1 and 2 accounts.',
+      example: 'A dealer whose GM presents Tekion as a competitive advantage at their 20-group meetings. New employees are onboarded on Tekion by an internal team. The CVM\'s last three meetings with this dealer were forward-looking: two capability expansions and a co-marketing conversation.',
+    },
+  },
+};
+
+let cells = [];
+let currentIdx = 0;
+
+function buildTable() {
+  const tbody = document.getElementById('dmm-body');
+  DIMS.forEach((dim, di) => {
+    const tr = document.createElement('tr');
+    tr.className = 'dim-row';
+
+    // Dim label
+    const tdLabel = document.createElement('td');
+    tdLabel.className = 'dim-label';
+    tdLabel.innerHTML = `<div class="dim-label-inner">${dim.label}</div>`;
+    tr.appendChild(tdLabel);
+
+    TIERS.forEach((tier, ti) => {
+      const data = CELLS[dim.key][tier.key];
+      const idx = cells.length;
+      cells.push({ dim, tier, data, idx });
+
+      const td = document.createElement('td');
+      td.className = `dmm-cell ${tier.key}`;
+      td.innerHTML = `
+        <div class="cell-inner" onclick="openModal(${idx})">
+          <div class="headline">${data.headline}</div>
+          <div class="subline">${data.subline}</div>
+          <div class="click-hint">Details ›</div>
+        </div>`;
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+
+    // Spacer between dimension groups (except last)
+    if (di < DIMS.length - 1) {
+      const spacer = document.createElement('tr');
+      spacer.className = 'row-spacer';
+      spacer.innerHTML = `<td colspan="5"></td>`;
+      tbody.appendChild(spacer);
+    }
+  });
+}
+
+function openModal(idx) {
+  currentIdx = idx;
+  renderModal(idx);
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+function renderModal(idx) {
+  const { dim, tier, data } = cells[idx];
+
+  const tag = document.getElementById('modal-tag');
+  tag.textContent = `${tier.label} · ${tier.name}`;
+  tag.style.background = tier.bg;
+  tag.style.color = tier.color;
+
+  document.getElementById('modal-dim').textContent = dim.label;
+  document.getElementById('modal-title').textContent = data.headline;
+
+  const body = document.getElementById('modal-body');
+  body.innerHTML = `
+    <div class="modal-section">
+      <div class="modal-section-label">What this means</div>
+      <p>${data.what}</p>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-label">Observable signals</div>
+      <ul>${data.signals.map(s => `<li>${s}</li>`).join('')}</ul>
+    </div>
+    <div class="modal-section">
+      <div class="signal-box">
+        <strong>${dim.owner} Action at this tier</strong>
+        ${data.cva_action}
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-label">Example in practice</div>
+      <p>${data.example}</p>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="navigate(-1)" ${idx === 0 ? 'disabled' : ''}>← Previous</button>
+      <span class="nav-pos">${idx + 1} of ${cells.length}</span>
+      <button class="nav-btn" onclick="navigate(1)" ${idx === cells.length - 1 ? 'disabled' : ''}>Next →</button>
+    </div>`;
+}
+
+function navigate(dir) {
+  const next = currentIdx + dir;
+  if (next >= 0 && next < cells.length) {
+    currentIdx = next;
+    renderModal(currentIdx);
+    document.getElementById('modal').scrollTop = 0;
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('modal-overlay').classList.contains('open')) return;
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'ArrowRight') navigate(1);
+  if (e.key === 'ArrowLeft') navigate(-1);
+});
+
+buildTable();
+</script>
+</body>
+</html>
